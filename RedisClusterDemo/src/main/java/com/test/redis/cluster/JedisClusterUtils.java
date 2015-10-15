@@ -18,12 +18,6 @@ public class JedisClusterUtils {
 
 	private JedisCluster jc = null;
 
-	private String hostAndPort = null;
-
-	private int commandTimeout = 0;
-
-	private int maxRedirections = 0;
-
 	public Long lpush(String key, String... string) {
 		return jc.lpush(key, string);
 	}
@@ -62,10 +56,8 @@ public class JedisClusterUtils {
 
 	public void init() {
 		Set<HostAndPort> hpSet = new HashSet<HostAndPort>();
-		hostAndPort = ZooKeeperConfig.getProperty("redis.hostAndPort");
-		maxRedirections = Integer.parseInt(ZooKeeperConfig.getProperty("redis.default.max.redirections"));
-		commandTimeout = Integer.parseInt(ZooKeeperConfig.getProperty("redis.default.commandtimeout"));
-		StringTokenizer st = new StringTokenizer(hostAndPort, ",");
+		String hostsAndPorts = ZooKeeperConfig.getProperty("redis.hostsAndPorts");
+		StringTokenizer st = new StringTokenizer(hostsAndPorts, ",");
 		while (st.hasMoreElements()) {
 			String hostAndPort = st.nextToken();
 			int idx = hostAndPort.indexOf(":");
@@ -87,6 +79,8 @@ public class JedisClusterUtils {
 		        Long.parseLong(ZooKeeperConfig.getProperty("redis.pool.timeBetweenEvictionRunsMillis")));
 		jedisPoolConfig.setMaxWaitMillis(Long.parseLong(ZooKeeperConfig.getProperty("redis.pool.maxWaitMillis")));
 
+		int maxRedirections = Integer.parseInt(ZooKeeperConfig.getProperty("redis.default.max.redirections"));
+		int commandTimeout = Integer.parseInt(ZooKeeperConfig.getProperty("redis.default.commandtimeout"));
 		jc = new JedisCluster(hpSet, commandTimeout, maxRedirections, jedisPoolConfig);
 	}
 
