@@ -5,39 +5,17 @@
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
 
+	<context:component-scan base-package="com.test" />
+
 	<!--加载配置文件 -->
-	<bean id="configproperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="locations">
-			<list>
-				<value>classpath:jedisClusterConfig.properties</value>
-			</list>
-		</property>
-		<property name="ignoreUnresolvablePlaceholders" value="true" />
+	<bean id="zooKeeperConfig" class="com.test.redis.config.ZooKeeperConfig" init-method="init">
+		<property name="nameSpace" value="cfg/redis" />
+		<property name="sleepTimes" value="3000" />
+		<property name="maxRetries" value="3" />
+		<property name="connectString" value="10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181" />
+		<property name="path" value="/properties" />
 	</bean>
-
-	<bean id="jedisClusterUtils" class="com.test.redis.cluster.JedisClusterUtils" init-method="init">
-		<property name="hostAndPort">
-			<value>${redis.hostAndPort}</value>
-		</property>
-		<property name="commandTimeout">
-			<value>${redis.default.commandtimeout}</value>
-		</property>
-		<property name="maxRedirections">
-			<value>${redis.default.max.redirections}</value>
-		</property>
-		<property name="jedisPoolConfig" ref="jedisPoolConfig" />
-	</bean>
-
-	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
-		<property name="maxTotal" value="${redis.pool.maxTotal}" />
-		<property name="maxIdle" value="${redis.pool.maxIdle}" />
-		<property name="minIdle" value="${redis.pool.minIdle}" />
-		<property name="testOnBorrow" value="${redis.pool.testOnBorrow}" />
-		<property name="testOnReturn" value="${redis.pool.testOnReturn}" />
-		<property name="testWhileIdle" value="${redis.pool.testWhileIdle}" />
-		<property name="numTestsPerEvictionRun" value="${redis.pool.numTestsPerEvictionRun}" />
-		<property name="timeBetweenEvictionRunsMillis" value="${redis.pool.timeBetweenEvictionRunsMillis}" />
-		<property name="maxWaitMillis" value="${redis.pool.maxWaitMillis}" />
-	</bean>
+	
+	<bean id="jedisClusterUtils" class="com.test.redis.cluster.JedisClusterUtils" init-method="init"/>
 
 </beans>
