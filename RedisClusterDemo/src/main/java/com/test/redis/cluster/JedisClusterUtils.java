@@ -1,11 +1,13 @@
 package com.test.redis.cluster;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.apache.zookeeper.server.auth.DigestAuthenticationProvider;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.test.redis.config.ZooKeeperConfig;
@@ -84,13 +86,19 @@ public class JedisClusterUtils {
 		jc = new JedisCluster(hpSet, commandTimeout, maxRedirections, jedisPoolConfig);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
+		test0();
 		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
 		JedisClusterUtils utils = ctx.getBean(JedisClusterUtils.class);
+		
 		utils.test1();
 		// utils.test2();
 		// utils.test3();
 		ctx.close();
+	}
+	
+	public static void test0() throws NoSuchAlgorithmException {
+		System.out.println(DigestAuthenticationProvider.generateDigest("a1:b1"));
 	}
 
 	public void test1() {

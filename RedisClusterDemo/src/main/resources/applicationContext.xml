@@ -14,6 +14,8 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 		<property name="maxRetries" value="3" />
 		<property name="connectString" value="10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181" />
 		<property name="path" value="/properties" />
+		<property name="scheme" value="digest" />
+		<property name="auth" value="a1:b1" />
 	</bean>
 	
 	<bean id="jedisClusterUtils" class="com.test.redis.cluster.JedisClusterUtils" init-method="init"/>

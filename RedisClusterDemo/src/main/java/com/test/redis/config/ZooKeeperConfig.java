@@ -2,11 +2,14 @@ package com.test.redis.config;
 
 import java.io.LineNumberReader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.AuthInfo;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -23,6 +26,10 @@ public class ZooKeeperConfig {
 	private int maxRetries;
 
 	private String connectString;
+	
+	private String scheme;
+	
+	private String auth;
 
 	private static Map<String, String> props = new HashMap<String, String>();
 
@@ -80,10 +87,28 @@ public class ZooKeeperConfig {
 		return client;
 	}
 
+	public String getScheme() {
+		return scheme;
+	}
+
+	public void setScheme(String scheme) {
+		this.scheme = scheme;
+	}
+
+	public String getAuth() {
+		return auth;
+	}
+
+	public void setAuth(String auth) {
+		this.auth = auth;
+	}
+
 	public void init() throws Exception {
+		List<AuthInfo> aiList = new ArrayList<>();
+		aiList.add(new AuthInfo(scheme, auth.getBytes()));
 		RetryPolicy retryPolicy = new ExponentialBackoffRetry(sleepTimes, maxRetries);
 		client = CuratorFrameworkFactory.builder().connectString(connectString).retryPolicy(retryPolicy)
-		        .namespace(nameSpace).build();
+		        .namespace(nameSpace).authorization(aiList).build();
 		client.start();
 
 		Stat stat = client.checkExists().forPath(path);
