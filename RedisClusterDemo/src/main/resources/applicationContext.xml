@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
@@ -8,16 +8,72 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 	<context:component-scan base-package="com.test" />
 
 	<!--加载配置文件 -->
-	<bean id="zooKeeperConfig" class="com.test.redis.config.ZooKeeperConfig" init-method="init">
+	<!-- <bean id="zooKeeperConfig" class="com.test.redis.config.ZooKeeperConfig"
+		init-method="init">
 		<property name="nameSpace" value="cfg/redis" />
 		<property name="sleepTimes" value="3000" />
 		<property name="maxRetries" value="3" />
-		<property name="connectString" value="10.25.23.113:2181,10.25.23.114:2181,10.25.23.115:2181" />
+		<property name="connectString"
+			value="192.168.56.71:2181,192.168.56.72:2181,192.168.56.73:2181" />
 		<property name="path" value="/properties" />
 		<property name="scheme" value="digest" />
-		<property name="auth" value="a1:b1" />
+		<property name="auth" value="admin:manager" />
+	</bean> -->
+
+	<!-- <bean id="redisSentinelConfiguration"
+		class="org.springframework.data.redis.connection.RedisSentinelConfiguration">
+		<property name="master">
+			<bean class="org.springframework.data.redis.connection.RedisNode">
+				<property name="name" value="sentinel-192.168.56.73-6379" />
+			</bean>
+		</property>
+		<property name="sentinels">
+			<set>
+				<bean class="org.springframework.data.redis.connection.RedisNode">
+					<constructor-arg index="0" value="192.168.56.72" />
+					<constructor-arg index="1" value="26379" />
+				</bean>
+				<bean class="org.springframework.data.redis.connection.RedisNode">
+					<constructor-arg index="0" value="192.168.56.73" />
+					<constructor-arg index="1" value="26379" />
+				</bean>
+			</set>
+		</property>
+	</bean> -->
+	
+	
+	<bean id="redisSentinelConfiguration"
+        class="org.springframework.data.redis.connection.RedisSentinelConfiguration">
+        <property name="master">
+            <bean class="org.springframework.data.redis.connection.RedisNode">
+                <property name="name" value="sentinel-10.0.21.52-6382" />
+            </bean>
+        </property>
+        <property name="sentinels">
+            <set>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="10.0.21.52" />
+                    <constructor-arg index="1" value="6383" />
+                </bean>
+                <bean class="org.springframework.data.redis.connection.RedisNode">
+                    <constructor-arg index="0" value="10.0.21.61" />
+                    <constructor-arg index="1" value="6381" />
+                </bean>
+            </set>
+        </property>
+    </bean>
+    
+	
+	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+	   <constructor-arg ref="redisSentinelConfiguration"/>
+	   <property name="usePool" value="true"/>
+	   <property name="timeout" value="15000"/>
+	   <property name="database" value="0"/>
+	   <property name="password" value=""/>
 	</bean>
 	
-	<bean id="jedisClusterUtils" class="com.test.redis.cluster.JedisClusterUtils" init-method="init"/>
+	<bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+	   <property name="connectionFactory" ref="jedisConnectionFactory"/>
+	</bean>
 
 </beans>

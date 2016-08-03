@@ -98,7 +98,7 @@ public class JedisClusterUtils {
 	}
 	
 	public static void test0() throws NoSuchAlgorithmException {
-		System.out.println(DigestAuthenticationProvider.generateDigest("a1:b1"));
+		System.out.println(DigestAuthenticationProvider.generateDigest("admin:manager"));
 	}
 
 	public void test1() {

@@ -1,134 +1,117 @@
 package com.test.redis.config;
 
-import java.io.LineNumberReader;
-import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.framework.AuthInfo;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.zookeeper.data.Stat;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 
 public class ZooKeeperConfig {
 
-	private String path;
+    private String path;
 
-	private String nameSpace;
+    private String nameSpace;
 
-	private int sleepTimes;
+    private int sleepTimes;
 
-	private int maxRetries;
+    private int maxRetries;
 
-	private String connectString;
-	
-	private String scheme;
-	
-	private String auth;
+    private String connectString;
 
-	private static Map<String, String> props = new HashMap<String, String>();
+    private String scheme;
 
-	private CuratorFramework client;
+    private String auth;
 
-	public String getPath() {
-		return path;
-	}
+    private static Map<String, String> props = new HashMap<String, String>();
 
-	public void setPath(String path) {
-		this.path = path;
-	}
+    public String getPath() {
+        return path;
+    }
 
-	public String getNameSpace() {
-		return nameSpace;
-	}
+    public void setPath(String path) {
+        this.path = path;
+    }
 
-	public void setNameSpace(String nameSpace) {
-		this.nameSpace = nameSpace;
-	}
+    public String getNameSpace() {
+        return nameSpace;
+    }
 
-	public int getSleepTimes() {
-		return sleepTimes;
-	}
+    public void setNameSpace(String nameSpace) {
+        this.nameSpace = nameSpace;
+    }
 
-	public void setSleepTimes(int sleepTimes) {
-		this.sleepTimes = sleepTimes;
-	}
+    public int getSleepTimes() {
+        return sleepTimes;
+    }
 
-	public int getMaxRetries() {
-		return maxRetries;
-	}
+    public void setSleepTimes(int sleepTimes) {
+        this.sleepTimes = sleepTimes;
+    }
 
-	public void setMaxRetries(int maxRetries) {
-		this.maxRetries = maxRetries;
-	}
+    public int getMaxRetries() {
+        return maxRetries;
+    }
 
-	public String getConnectString() {
-		return connectString;
-	}
+    public void setMaxRetries(int maxRetries) {
+        this.maxRetries = maxRetries;
+    }
 
-	public void setConnectString(String connectString) {
-		this.connectString = connectString;
-	}
+    public String getConnectString() {
+        return connectString;
+    }
 
-	public static Map<String, String> getProps() {
-		return props;
-	}
+    public void setConnectString(String connectString) {
+        this.connectString = connectString;
+    }
 
-	public static String getProperty(String key) {
-		return props.get(key);
-	}
+    public static Map<String, String> getProps() {
+        return props;
+    }
 
-	public CuratorFramework getClient() {
-		return client;
-	}
+    public static String getProperty(String key) {
+        return props.get(key);
+    }
 
-	public String getScheme() {
-		return scheme;
-	}
+    public String getScheme() {
+        return scheme;
+    }
 
-	public void setScheme(String scheme) {
-		this.scheme = scheme;
-	}
+    public void setScheme(String scheme) {
+        this.scheme = scheme;
+    }
 
-	public String getAuth() {
-		return auth;
-	}
+    public String getAuth() {
+        return auth;
+    }
 
-	public void setAuth(String auth) {
-		this.auth = auth;
-	}
+    public void setAuth(String auth) {
+        this.auth = auth;
+    }
 
-	public void init() throws Exception {
-		List<AuthInfo> aiList = new ArrayList<>();
-		aiList.add(new AuthInfo(scheme, auth.getBytes()));
-		RetryPolicy retryPolicy = new ExponentialBackoffRetry(sleepTimes, maxRetries);
-		client = CuratorFrameworkFactory.builder().connectString(connectString).retryPolicy(retryPolicy)
-		        .namespace(nameSpace).authorization(aiList).build();
-		client.start();
+    public void init() throws Exception {
+        ZooKeeper zk = new ZooKeeper(connectString, 2000, new Watcher() {
+            @Override
+            public void process(WatchedEvent event) {
+                System.out.println("Connecting to ZK.");
+            }
+        });
+        zk.addAuthInfo(scheme, auth.getBytes());
 
-		Stat stat = client.checkExists().forPath(path);
-		if (stat == null) {
-			throw new RuntimeException("Path " + path + " does not exists.");
-		}
-		String cfg = new String(client.getData().forPath(path), "UTF-8");
-		try (LineNumberReader reader = new LineNumberReader(new StringReader(cfg))) {
-			String cfgLine = null;
-			do {
-				cfgLine = reader.readLine();
-				if (StringUtils.isNotBlank(cfgLine) && !cfgLine.trim().startsWith("#")) {
-					String[] cfgItem = StringUtils.split(cfgLine, "=");
-					props.put(cfgItem[0], cfgItem[1]);
-				} else {
-					continue;
-				}
-			} while (cfgLine != null);
-		}
+        // Wait till connection is established.
+        while (zk.getState() != ZooKeeper.States.CONNECTED) {
+            Thread.sleep(30);
+        }
+        String str = "/" + nameSpace + path;
+        List<String> list = zk.getChildren("/" + nameSpace + path, null);
+        for (String p : list) {
+            String value = new String(zk.getData(str + "/" + p, null, null));
+            System.out.println(value);
+            props.put(p, value);
+        }
+    }
 
-	}
+    
 
 }
